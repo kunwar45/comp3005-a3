@@ -10,6 +10,8 @@ public class Main {
 
         Connection connection = null;
 
+        Scanner s = new Scanner(System.in);
+
         //setup connection
         try {
             Class.forName("org.postgresql.Driver");
@@ -18,8 +20,7 @@ public class Main {
             System.out.println(e);
         }
 
-        Scanner sc = new Scanner(System.in);
-        int user_input = 0;
+        String user_input = "";
 
         System.out.println("Welcome to the student database!");
         System.out.println("There are 5 commands:");
@@ -29,54 +30,61 @@ public class Main {
         System.out.println("\t 4. Delete a student");
         System.out.println("\t 5. Quit the application");
 
-        while (user_input != 5){
-            try {
-                System.out.print("What would you like to do? (1-5): ");
-                user_input = sc.nextInt();
-                sc.nextLine();
-            } catch (Exception e){
-                System.out.println(e);
-            }
+        while (!user_input.equals("5")){
+            user_input = getUserValue(s, "What would you like to do? (1-5): ");
 
             switch (user_input) {
-                case 1:
+                case "1":
                     try {
                         getAllStudents(connection);
                     } catch (Exception e){
                         System.out.println(e);
                     }
                     break;
-                case 2:
+                case "2":
                     try {
-                        addStudent(connection);
+                        String first_name = getUserValue(s, "Enter the first name: ");
+                        String last_name = getUserValue(s, "Enter the last name: ");
+                        String email = getUserValue(s, "Enter the email (something@example.com): ");
+                        String enrollment_date = getUserValue(s, "Enter the enrollment date (YYYY-MM-DD): ");
+                        addStudent(connection, first_name, last_name, email, enrollment_date);
                     } catch (Exception e){
                         System.out.println(e);
                     }
                     break;
-                case 3:
+                case "3":
                     try {
-                        updateStudentEmail(connection);
+                        String id = getUserValue(s, "Enter the id of the student whose email you would like to update: ");
+                        String new_email = getUserValue(s, "Enter the new email (something@example.com): ");
+                        updateStudentEmail(connection, id, new_email);
                     } catch (Exception e){
                         System.out.println(e);
                     }
                     break;
-                case 4:
+                case "4":
                     try {
-                        deleteStudent(connection);
+                        String id = getUserValue(s, "Enter the id of the student you would like to delete: ");
+                        deleteStudent(connection, id);
                     } catch (Exception e){
                         System.out.println(e);
                     }
                     break;
-                case 5:
+                case "5":
                     System.out.println("Exiting the program. Goodbye!");
                     break;
                 default:
-                    System.out.println("Invalid choice. Please enter a number between 1 and 5.");
+                    System.out.println("Invalid choice. Please enter number between 1 and 5.");
                     break;
             }
         }
-        sc.close();
         connection.close();
+        s.close();
+    }
+
+    public static String getUserValue(Scanner s, String prompt) {
+        System.out.print(prompt);
+        String val = s.nextLine();
+        return val;
     }
 
     protected static void getAllStudents(Connection connection) throws SQLException {
@@ -94,29 +102,7 @@ public class Main {
         }
     }
 
-    protected static void addStudent(Connection connection) throws SQLException {
-
-        Scanner scanner = new Scanner(System.in);
-
-        String first_name = "", last_name = "", email = "", enrollment_date = "";
-        try {
-            System.out.print("Enter the first name: ");
-            first_name = scanner.nextLine();
-
-            System.out.print("Enter the last name: ");
-            last_name = scanner.nextLine();
-
-            System.out.print("Enter the email (something@example.com): ");
-            email = scanner.nextLine();
-
-            System.out.print("Enter the enrollment date (YYYY-MM-DD): ");
-            enrollment_date = scanner.nextLine();
-        } catch (Exception e){
-            System.out.println(e);
-        } finally {
-            scanner.close();
-        }
-
+    protected static void addStudent(Connection connection, String first_name, String last_name, String email, String enrollment_date) throws SQLException {
         String sql = "INSERT INTO students (first_name, last_name, email, enrollment_date) VALUES (?, ?, ?, ?)";
         try ( PreparedStatement statement = connection.prepareStatement(sql)) {
             // Set values for the parameters
@@ -129,23 +115,7 @@ public class Main {
         }
     }
 
-    protected static void updateStudentEmail(Connection connection) throws SQLException {
-        Scanner scanner = new Scanner(System.in);
-
-        String id = "", new_email = "";
-
-        try {
-            System.out.print("Enter the id of the student whose email you would like to update: ");
-            id = scanner.nextLine();
-
-            System.out.print("Enter the new email (something@example.com): ");
-            new_email = scanner.nextLine();
-        } catch (Exception e){
-            System.out.println(e);
-        } finally {
-            scanner.close();
-        }
-
+    protected static void updateStudentEmail(Connection connection, String id, String new_email) throws SQLException {
         String sql = "UPDATE students SET email = ? WHERE student_id = ?";
 
         try ( PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -153,7 +123,6 @@ public class Main {
             statement.setInt(2, Integer.parseInt(id));
             // Execute the query and get the number of rows affected
             int rowsAffected = statement.executeUpdate();
-
             if (rowsAffected > 0) {
                 System.out.println("Email update successful for student with ID " + id + ".");
             } else {
@@ -162,21 +131,7 @@ public class Main {
         }
     }
 
-    protected static void deleteStudent(Connection connection) throws SQLException {
-
-        Scanner scanner = new Scanner(System.in);
-
-        String id = "";
-
-        try {
-            System.out.print("Enter the id of the student whose email you would like to update: ");
-            id = scanner.nextLine();
-        } catch (Exception e){
-            System.out.println(e);
-        } finally {
-            scanner.close();
-        }
-
+    protected static void deleteStudent(Connection connection, String id) throws SQLException {
         String sql = "DELETE FROM students WHERE student_id = ?";
 
         try ( PreparedStatement statement = connection.prepareStatement(sql)) {
