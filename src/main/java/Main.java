@@ -10,6 +10,7 @@ public class Main {
 
         Connection connection = null;
 
+        // create a scanner
         Scanner s = new Scanner(System.in);
 
         //setup connection
@@ -22,6 +23,7 @@ public class Main {
 
         String user_input = "";
 
+        //this is the default message displayed at the beginning
         System.out.println("Welcome to the student database!");
         System.out.println("There are 5 commands:");
         System.out.println("\t 1. Display all students");
@@ -30,9 +32,12 @@ public class Main {
         System.out.println("\t 4. Delete a student");
         System.out.println("\t 5. Quit the application");
 
-        while (!user_input.equals("5")){
-            user_input = getUserValue(s, "What would you like to do? (1-5): ");
 
+        //this while loop will keep the program running until the user wants to quit
+        while (!user_input.equals("5")){
+            //ask the user what they want to do
+            user_input = getUserValue(s, "What would you like to do? (1-5): ");
+            // this switch case checks the user input and execute the corresponding command
             switch (user_input) {
                 case "1":
                     try {
@@ -77,16 +82,20 @@ public class Main {
                     break;
             }
         }
+
+        //close the connection to the DB and the scanner
         connection.close();
         s.close();
     }
 
+    //this method prompts the user with a given value and returns the users response
     public static String getUserValue(Scanner s, String prompt) {
         System.out.print(prompt);
         String val = s.nextLine();
         return val;
     }
 
+    // this will print all students in the db, by executing a sql query
     protected static void getAllStudents(Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement()){
             statement.executeQuery("SELECT * FROM students");
@@ -101,9 +110,10 @@ public class Main {
             }
         }
     }
-
+    // This one will add a student to the db
     protected static void addStudent(Connection connection, String first_name, String last_name, String email, String enrollment_date) throws SQLException {
         String sql = "INSERT INTO students (first_name, last_name, email, enrollment_date) VALUES (?, ?, ?, ?)";
+        //trying to insert the values in the prepared statement
         try ( PreparedStatement statement = connection.prepareStatement(sql)) {
             // Set values for the parameters
             statement.setString(1, first_name);
@@ -114,7 +124,7 @@ public class Main {
             System.out.println("\nData inserted successfully.");
         }
     }
-
+    // this updates the student email
     protected static void updateStudentEmail(Connection connection, String id, String new_email) throws SQLException {
         String sql = "UPDATE students SET email = ? WHERE student_id = ?";
 
@@ -130,7 +140,7 @@ public class Main {
             }
         }
     }
-
+    // this method deletes a student
     protected static void deleteStudent(Connection connection, String id) throws SQLException {
         String sql = "DELETE FROM students WHERE student_id = ?";
 
@@ -138,7 +148,6 @@ public class Main {
             statement.setInt(1, Integer.parseInt(id));
             // Execute the query and get the number of rows affected
             int rowsAffected = statement.executeUpdate();
-
             if (rowsAffected > 0) {
                 System.out.println("Deletion successful for student with ID " + id + ".");
             } else {
